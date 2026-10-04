@@ -16,35 +16,53 @@
 ### 🛠 2. 사용 기술 (Tech Stack)
 
 #### Backend & Security
-<p>
-  <img src="https://img.shields.io/badge/Java_17-007396?style=flat-square&logo=openjdk&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Spring_Boot_3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=springsecurity&logoColor=white"/>
-  <img src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white"/>
-</p>
+<section id="tech-stack">
+  <h3>🛠 2. 사용 기술 (Tech Stack)</h3>
 
-#### Database & ORM
-<p>
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Spring_Data_JPA-59666C?style=flat-square&logo=hibernate&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Querydsl-007ACC?style=flat-square&logo=curseforge&logoColor=white"/>
-</p>
+  <h4>Backend &amp; Security</h4>
+  <p>
+    <img src="https://img.shields.io/badge/Java_17-007396?style=flat-square&logo=openjdk&logoColor=white" alt="Java 17" />
+    <img src="https://img.shields.io/badge/Spring_Boot_3.x-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 3.x" />
+    <img src="https://img.shields.io/badge/Spring_Security_6-6DB33F?style=flat-square&logo=springsecurity&logoColor=white" alt="Spring Security 6" />
+    <img src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" alt="JWT" />
+    <img src="https://img.shields.io/badge/Gradle-02303A?style=flat-square&logo=gradle&logoColor=white" alt="Gradle" />
+  </p>
 
-#### Frontend
-<p>
-  <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black"/>
-  <img src="https://img.shields.io/badge/JavaScript_ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black"/>
-  <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white"/>
-  <img src="https://img.shields.io/badge/HTML5/CSS3-E34F26?style=flat-square&logo=html5&logoColor=white"/>
-</p>
+  <h4>Database &amp; ORM</h4>
+  <p>
+    <img src="https://img.shields.io/badge/MySQL_8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0" />
+    <img src="https://img.shields.io/badge/Spring_Data_JPA-59666C?style=flat-square&logo=hibernate&logoColor=white" alt="Spring Data JPA" />
+    <img src="https://img.shields.io/badge/Hibernate-59666C?style=flat-square&logo=hibernate&logoColor=white" alt="Hibernate" />
+    <img src="https://img.shields.io/badge/Querydsl-007ACC?style=flat-square&logo=curseforge&logoColor=white" alt="Querydsl" />
+  </p>
 
-#### DevOps & Tools
-<p>
-  <img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white"/>
-  <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white"/>
-  <img src="https://img.shields.io/badge/AWS_EC2-FF9900?style=flat-square&logo=amazonec2&logoColor=white"/>
-</p>
+  <h4>Frontend &amp; 3D Interactive</h4>
+  <p>
+    <img src="https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 18" />
+    <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    <img src="https://img.shields.io/badge/Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js" />
+    <img src="https://img.shields.io/badge/React_Three_Fiber-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="React Three Fiber" />
+    <img src="https://img.shields.io/badge/@react--three/drei-000000?style=flat-square&logo=three.js&logoColor=white" alt="React Three Drei" />
+    <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion" />
+    <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white" alt="Axios" />
+    <img src="https://img.shields.io/badge/Lucide_React-F05032?style=flat-square&logo=feather&logoColor=white" alt="Lucide React" />
+  </p>
+
+  <h4>AI &amp; External Open API</h4>
+  <p>
+    <img src="https://img.shields.io/badge/Google_Gemini_Vision_API-8E75C2?style=flat-square&logo=googlegemini&logoColor=white" alt="Google Gemini Vision API" />
+    <img src="https://img.shields.io/badge/Kakao_Open_API-FFCD00?style=flat-square&logo=kakao&logoColor=black" alt="Kakao Open API" />
+    <img src="https://img.shields.io/badge/IoT_Edge_REST_Webhook-02569B?style=flat-square&logo=googlecloud&logoColor=white" alt="IoT Edge REST Webhook" />
+  </p>
+
+  <h4>DevOps &amp; Tools</h4>
+  <p>
+    <img src="https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white" alt="Git" />
+    <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" />
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/AWS_EC2-FF9900?style=flat-square&logo=amazonec2&logoColor=white" alt="AWS EC2" />
+  </p>
+</section>
 
 ---
 
