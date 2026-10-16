@@ -13,7 +13,7 @@ import * as THREE from 'three';
 // import MushroomModel3D from './MushroomModel3D';
 // import FridgeModel3D from './FridgeModel3D';
 
-import DraggableItem from './DraggableItem';
+//import DraggableItem from './DraggableItem';
 
 function CameraController({ isOpen, controlsRef }) {
   useFrame((state, delta) => {
