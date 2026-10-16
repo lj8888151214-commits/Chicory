@@ -3,14 +3,6 @@ import axios from 'axios';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import SaltModel3D from './SaltModel3D';
-import OnionModel3D from './OnionModel3D';
-import KimchiModel3D from './KimchiModel3D';
-import PerillaOilModel3D from './PerillaOilModel3D';
-import GarlicModel3D from './GarlicModel3D';
-import MushroomModel3D from './MushroomModel3D';
-import FridgeModel3D from './FridgeModel3D';
-import DraggableItem from './DraggableItem';
 
 function CameraController({ isOpen, controlsRef }) {
   useFrame((state, delta) => {
@@ -50,7 +42,32 @@ function Ingredient3D({ item, color }) {
   );
 }
 
-function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControlsEnabled }) {
+function FallbackFridge({ isOpen }) {
+  return (
+    <group position={[0, -0.2, 0]}>
+      {/* 냉장고 본체 프레임 */}
+      <mesh position={[0, 0, -0.2]}>
+        <boxGeometry args={[1.2, 1.8, 0.8]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.3} transparent opacity={0.65} />
+      </mesh>
+      {/* 선반 3단 */}
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+      <mesh position={[0, -0.12, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+      <mesh position={[0, -0.66, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+    </group>
+  );
+}
+
+function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient }) {
   const getColor = (name = '') => {
     if (name.includes('돼지') || name.includes('고기') || name.includes('삼겹')) return '#ff6b6b';
     if (name.includes('김치')) return '#ee5253';
@@ -63,14 +80,6 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
   const shelves = [0.25, -0.12, -0.66];
 
   const renderModel = (item) => {
-    const itemName = (item.name || '').trim();
-    if (itemName.includes('소금')) return <SaltModel3D scale={0.015} label={item.name} />;
-    if (itemName.includes('양파')) return <OnionModel3D scale={0.20} label={item.name} />;
-    if (itemName.includes('김치')) return <KimchiModel3D scale={0.32} label={item.name} />;
-    if (itemName.includes('들기름') || itemName.includes('기름')) return <PerillaOilModel3D scale={0.14} label={item.name} />;
-    if (itemName.includes('마늘')) return <GarlicModel3D scale={0.20} label={item.name} />;
-    if (itemName.includes('버섯') || itemName.toLowerCase().includes('mushroom')) return <MushroomModel3D scale={0.20} label={item.name} />;
-
     return <Ingredient3D item={item} color={getColor(item.name || '')} />;
   };
 
@@ -81,10 +90,10 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
       <pointLight position={[0, 0.5, 0.8]} intensity={1.2} color="#ffffff" />
 
       <Suspense fallback={null}>
-        <FridgeModel3D isOpen={isOpen} position={[0, -0.9, -0.1]} scale={0.6} />
+        <FallbackFridge isOpen={isOpen} />
       </Suspense>
 
-      {/* 식재료 드래그 앤 드롭 렌더링 */}
+      {/* DraggableItem 대신 Three.js group 태그로 안전하게 배치 */}
       {ingredients.map((item, idx) => {
         const shelfIndex = idx % 3;
         const yPos = shelves[shelfIndex];
@@ -94,17 +103,15 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
         const zPos = 0.06 - depthLevel * 0.16;
 
         return (
-          <DraggableItem
+          <group
             key={item.id || `${item.name}-${idx}`}
-            item={item}
-            initialPosition={[xPos, yPos + 0.03, zPos]}
-            onRemove={onRemoveIngredient}
-            setControlsEnabled={setControlsEnabled}
+            position={[xPos, yPos + 0.03, zPos]}
+            onClick={() => onRemoveIngredient && onRemoveIngredient(item.id || item.name)}
           >
             <Suspense fallback={null}>
               {renderModel(item)}
             </Suspense>
-          </DraggableItem>
+          </group>
         );
       })}
     </group>
@@ -113,12 +120,10 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
 
 export default function Fridge3DViewer({ isOpen = true }) {
   const [ingredients, setIngredients] = useState([]);
-  const [controlsEnabled, setControlsEnabled] = useState(true);
   const controlsRef = useRef();
 
   const fetchIngredients = async () => {
     try {
-      // http://localhost:8080 제거 -> 상대 경로 사용
       const res = await axios.get('/api/iot/fridge/ingredients');
       setIngredients(res.data || []);
     } catch (err) {
@@ -126,14 +131,12 @@ export default function Fridge3DViewer({ isOpen = true }) {
     }
   };
 
-  // 식재료 빼내기(삭제) 핸들러
   const handleRemoveIngredient = async (targetId) => {
     try {
-      // http://localhost:8080 제거 -> 상대 경로 사용
       await axios.delete(`/api/iot/fridge/ingredients/${targetId}`);
       setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
     } catch (err) {
-      console.warn("삭제 API 미지원 또는 실패 -> UI에서만 임시 제거:", err);
+      console.warn("삭제 API 미지원 또는 실패 -> UI 임시 반영:", err);
       setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
     }
   };
@@ -155,12 +158,10 @@ export default function Fridge3DViewer({ isOpen = true }) {
           ingredients={ingredients}
           isOpen={isOpen}
           onRemoveIngredient={handleRemoveIngredient}
-          setControlsEnabled={setControlsEnabled}
         />
 
         <OrbitControls
           ref={controlsRef}
-          enabled={controlsEnabled}
           target={[0, -0.25, 0]}
           enableDamping
           dampingFactor={0.05}
