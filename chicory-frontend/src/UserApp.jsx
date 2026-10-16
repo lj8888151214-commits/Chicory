@@ -3,13 +3,16 @@ import axios from 'axios';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import SaltModel3D from './SaltModel3D';
-import OnionModel3D from './OnionModel3D';
-import KimchiModel3D from './KimchiModel3D';
-import PerillaOilModel3D from './PerillaOilModel3D';
-import GarlicModel3D from './GarlicModel3D';
-import MushroomModel3D from './MushroomModel3D';
-import FridgeModel3D from './FridgeModel3D';
+
+// 3D GLTF/모델 컴포넌트가 components 폴더에 실제로 있는 경우 주석을 해제하세요.
+// import SaltModel3D from './SaltModel3D';
+// import OnionModel3D from './OnionModel3D';
+// import KimchiModel3D from './KimchiModel3D';
+// import PerillaOilModel3D from './PerillaOilModel3D';
+// import GarlicModel3D from './GarlicModel3D';
+// import MushroomModel3D from './MushroomModel3D';
+// import FridgeModel3D from './FridgeModel3D';
+
 import DraggableItem from './DraggableItem';
 
 function CameraController({ isOpen, controlsRef }) {
@@ -50,6 +53,32 @@ function Ingredient3D({ item, color }) {
   );
 }
 
+// 냉장고 모델 임포트가 주석 상태일 때를 대비한 기본 본체 플레이스홀더
+function FallbackFridge({ isOpen }) {
+  return (
+    <group position={[0, -0.2, 0]}>
+      {/* 냉장고 외형 박스 */}
+      <mesh position={[0, 0, -0.2]}>
+        <boxGeometry args={[1.2, 1.8, 0.8]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.6} roughness={0.2} transparent opacity={0.6} />
+      </mesh>
+      {/* 선반 3단 */}
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+      <mesh position={[0, -0.12, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+      <mesh position={[0, -0.66, 0]}>
+        <boxGeometry args={[1.1, 0.02, 0.6]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+    </group>
+  );
+}
+
 function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControlsEnabled }) {
   const getColor = (name = '') => {
     if (name.includes('돼지') || name.includes('고기') || name.includes('삼겹')) return '#ff6b6b';
@@ -63,6 +92,8 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
   const shelves = [0.25, -0.12, -0.66];
 
   const renderModel = (item) => {
+    // 세부 모델 컴포넌트들을 연결하실 때는 상단 import 주석을 풀고 아래 분기를 활성화하세요.
+    /*
     const itemName = (item.name || '').trim();
     if (itemName.includes('소금')) return <SaltModel3D scale={0.015} label={item.name} />;
     if (itemName.includes('양파')) return <OnionModel3D scale={0.20} label={item.name} />;
@@ -70,6 +101,7 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
     if (itemName.includes('들기름') || itemName.includes('기름')) return <PerillaOilModel3D scale={0.14} label={item.name} />;
     if (itemName.includes('마늘')) return <GarlicModel3D scale={0.20} label={item.name} />;
     if (itemName.includes('버섯') || itemName.toLowerCase().includes('mushroom')) return <MushroomModel3D scale={0.20} label={item.name} />;
+    */
 
     return <Ingredient3D item={item} color={getColor(item.name || '')} />;
   };
@@ -81,7 +113,8 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
       <pointLight position={[0, 0.5, 0.8]} intensity={1.2} color="#ffffff" />
 
       <Suspense fallback={null}>
-        <FridgeModel3D isOpen={isOpen} position={[0, -0.9, -0.1]} scale={0.6} />
+        {/* FridgeModel3D 파일이 실제로 있다면 교체, 현재는 Fallback 본체 렌더링 */}
+        <FallbackFridge isOpen={isOpen} />
       </Suspense>
 
       {/* 식재료 드래그 앤 드롭 렌더링 */}
@@ -118,7 +151,6 @@ export default function Fridge3DViewer({ isOpen = true }) {
 
   const fetchIngredients = async () => {
     try {
-      // http://localhost:8080 제거 -> 상대 경로 사용
       const res = await axios.get('/api/iot/fridge/ingredients');
       setIngredients(res.data || []);
     } catch (err) {
@@ -129,7 +161,6 @@ export default function Fridge3DViewer({ isOpen = true }) {
   // 식재료 빼내기(삭제) 핸들러
   const handleRemoveIngredient = async (targetId) => {
     try {
-      // http://localhost:8080 제거 -> 상대 경로 사용
       await axios.delete(`/api/iot/fridge/ingredients/${targetId}`);
       setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
     } catch (err) {
