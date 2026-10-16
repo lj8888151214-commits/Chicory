@@ -1,0 +1,77 @@
+name: Chicory CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: chicory-frontend/package-lock.json
+
+      - name: Build Frontend
+        run: |
+          cd chicory-frontend
+          npm install
+          npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Spring Boot with Gradle
+        run: ./gradlew clean bootJar -x test
+
+      # 4. ec2-user 홈 경로로 JAR 전송
+      - name: Transfer JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          source: "build/libs/*.jar"
+          target: "/home/ec2-user/chicory"
+          strip_components: 2
+
+      # 5. 기존 8082 프로세스 종료 후 새 JAR 실행
+      - name: Deploy and Restart Application on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            echo "🚀 Chicory 서비스 배포 시작..."
+            
+            # 기존 8082 포트 프로세스 종료 (PID 확인)
+            TARGET_PID=$(pgrep -f Chicory | head -n 1)
+            if [ -n "$TARGET_PID" ]; then
+              echo "기존 Chicory 프로세스($TARGET_PID) 종료 중..."
+              kill -15 $TARGET_PID
+              sleep 3
+            fi
+
+            # 새 JAR 백그라운드 구동 (Free Tier 메모리 제한 512m)
+            cd /home/ec2-user/chicory
+            nohup java -Xms256m -Xmx512m -jar $(ls -t *.jar | head -n 1) > app.log 2>&1 &
+            
+            sleep 2
+            echo "✅ Chicory 배포 완료!"
+            ps -ef | grep Chicory | grep -v grep
