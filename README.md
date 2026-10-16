@@ -66,10 +66,14 @@
 | 주차 | 단계 | 주요 작업 내용 |
 | :---: | :--- | :--- |
 | **1주차** | **기획 및 도메인 모델링** | 요구사항 정의, DB 설계(ERD), RESTful API 엔드포인트 규격 수립 |
-| **2주차** | **인증 및 기본 백엔드 구축** | Spring Security & JWT 기반 무상태 인증 체계, 식재료/냉장고 CRUD 개발 |
-| **3주차** | **핵심 알고리즘 & 동적 쿼리** | 식재료 일치율(Match Rate) 추천 알고리즘 설계, Querydsl 다중 조건 검색 구현 |
-| **4주차** | **React 프론트엔드 연동** | 냉장/냉동 수납 인터랙티브 UI, Axios 인터셉터 연동 및 무한 스크롤 구현 |
-| **5주차** | **배포 및 통합 테스트** | Docker 컨테이너라이징, AWS EC2 배포 및 피드백 기반 디버깅 |
+| **1주차** | **인증 및 기본 백엔드 구축** | Spring Security & JWT 기반 무상태 인증 체계, 식재료/냉장고 CRUD 개발 |
+| **2주차** | **핵심 알고리즘 & 동적 쿼리** | 식재료 일치율(Match Rate) 추천 알고리즘 설계, Querydsl 다중 조건 검색 구현 |
+| **2주차** | **React 프론트엔드 연동** | 냉장/냉동 수납 인터랙티브 UI, Axios 인터셉터 연동 및 무한 스크롤 구현 |
+| **2주차** | **배포 및 통합 테스트** | Docker 컨테이너라이징, AWS EC2 배포 및 피드백 기반 디버깅 |
+| **3주차** | **관리 화면 Link** | https://chicoryworld.duckdns.org |
+| **3주차** | **냉장고 Link** | (https://chicoryworld.duckdns.org/fridge)](https://chicoryworld.duckdns.org/fridge)|
+
+
 
 ---
 
