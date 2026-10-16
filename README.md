@@ -86,6 +86,8 @@
 |<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/4a387a95-e1d1-4714-b294-095eb3c9b3d3" />
 |<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/bac4bba9-84c3-494a-b158-ade42da87bc8" />
 |<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/6dc06aad-04c3-4576-a692-3059fe5da6a2" />
+|<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/5d3d3b3a-7bdf-4d03-856a-c108a168d05e" />
+
 - **No-Offset 페이징을 통한 성능 개선**
   - 대용량 레시피 목록 조회 시 `OFFSET` 탐색 비용을 줄이기 위해 직전 ID 기준 커서 방식(Slice) 적용
 - **D-Day 소비기한 시각화**
