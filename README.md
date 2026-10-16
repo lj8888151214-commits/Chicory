@@ -79,6 +79,13 @@
   - 등록된 냉장고 재고와 레시피 필요 재료를 교차 대조하여 일치율(Match Rate) 순으로 요리를 추천
 - **Querydsl 다중 조건 동적 쿼리 최적화**
   - 카테고리, 난이도, 복수 재료 태그(AND/OR) 조건을 `BooleanBuilder`로 동적 바인딩하여 불필요한 다중 쿼리 호출 방지
+ 
+  - ### 📱 5. 주요 화면 시각 자료
+
+| 카메라 촬영 및 AI 객체 인식 | 포인트 적립 및 리워드 대시보드 |
+|<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/4a387a95-e1d1-4714-b294-095eb3c9b3d3" />
+|<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/bac4bba9-84c3-494a-b158-ade42da87bc8" />
+|<img width="1179" height="2556" alt="image" src="https://github.com/user-attachments/assets/6dc06aad-04c3-4576-a692-3059fe5da6a2" />
 - **No-Offset 페이징을 통한 성능 개선**
   - 대용량 레시피 목록 조회 시 `OFFSET` 탐색 비용을 줄이기 위해 직전 ID 기준 커서 방식(Slice) 적용
 - **D-Day 소비기한 시각화**
