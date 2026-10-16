@@ -71,7 +71,7 @@
 | **2주차** | **React 프론트엔드 연동** | 냉장/냉동 수납 인터랙티브 UI, Axios 인터셉터 연동 및 무한 스크롤 구현 |
 | **2주차** | **배포 및 통합 테스트** | Docker 컨테이너라이징, AWS EC2 배포 및 피드백 기반 디버깅 |
 | **3주차** | **관리 화면 Link** | https://chicoryworld.duckdns.org |
-| **3주차** | **냉장고 Link** | (https://chicoryworld.duckdns.org/fridge)](https://chicoryworld.duckdns.org/fridge)|
+| **3주차** | **냉장고 Link** | [https://chicoryworld.duckdns.org/fridge|
 
 
 
