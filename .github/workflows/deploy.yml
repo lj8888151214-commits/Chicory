@@ -50,28 +50,34 @@ jobs:
           strip_components: 2
 
       # 5. 기존 8082 프로세스 종료 후 새 JAR 실행
-      - name: Deploy and Restart Application on EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          script: |
-            echo "🚀 Chicory 서비스 배포 시작..."
-            
-            # 기존 8082 포트 프로세스 종료 (PID 확인)
-            TARGET_PID=$(pgrep -f Chicory | head -n 1)
-            if [ -n "$TARGET_PID" ]; then
-              echo "기존 Chicory 프로세스($TARGET_PID) 종료 중..."
-              kill -15 $TARGET_PID
-              sleep 3
-            fi
+            # 5. EC2 서버에서 기존 프로세스 재시작 (8082 포트 전용 타겟팅)
+            - name: Deploy and Restart Application on EC2
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USERNAME }}
+                key: ${{ secrets.EC2_SSH_KEY }}
+                port: ${{ secrets.EC2_PORT }}
+                script: |
+                  echo "🚀 Chicory 서비스 배포 시작..."
 
-            # 새 JAR 백그라운드 구동 (Free Tier 메모리 제한 512m)
-            cd /home/ec2-user/chicory
-            nohup java -Xms256m -Xmx512m -jar $(ls -t *.jar | head -n 1) > app.log 2>&1 &
-            
-            sleep 2
-            echo "✅ Chicory 배포 완료!"
-            ps -ef | grep Chicory | grep -v grep
+                  # 1. 8082 포트를 열고 있는 프로세스만 찾아서 안전하게 종료
+                  TARGET_PID=$(lsof -ti :8082 || true)
+                  if [ -n "$TARGET_PID" ]; then
+                    echo "기존 8082 포트 프로세스($TARGET_PID) 종료 중..."
+                    kill -15 $TARGET_PID || true
+                    sleep 5
+                  else
+                    echo "실행 중인 기존 8082 프로세스가 없습니다."
+                  fi
+
+                  # 2. 새 JAR 백그라운드 구동
+                  cd /home/ec2-user/chicory
+                  JAR_NAME=$(ls -t *.jar | head -n 1)
+                  echo "실행할 JAR: $JAR_NAME"
+
+                  nohup java -Xms256m -Xmx512m -jar "$JAR_NAME" > app.log 2>&1 &
+
+                  sleep 3
+                  echo "✅ Chicory 구동 확인!"
+                  ps -ef | grep java | grep 8082 || ps -ef | grep "$JAR_NAME" | grep -v grep
