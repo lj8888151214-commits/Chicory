@@ -93,7 +93,7 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient }) {
         <FallbackFridge isOpen={isOpen} />
       </Suspense>
 
-      {/* DraggableItem 대신 Three.js group 태그로 안전하게 배치 */}
+      {/* DraggableItem 대신 Three.js 표준 group 태그로 배치 */}
       {ingredients.map((item, idx) => {
         const shelfIndex = idx % 3;
         const yPos = shelves[shelfIndex];
