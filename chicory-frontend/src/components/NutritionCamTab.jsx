@@ -9,17 +9,24 @@ export default function NutritionCamTab({ onRewardPoints }) {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [nutritionResult, setNutritionResult] = useState(null);
+  // 'environment': 후면(음식 촬영용), 'user': 전면(셀카)
+  const [facingMode, setFacingMode] = useState('environment');
 
-  const startCamera = async () => {
+  const startCamera = async (mode = facingMode) => {
+    // 기존 활성 스트림 정리
+    stopCamera();
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {
+          facingMode: { ideal: mode } // 💡 후면/전면 카메라 모드 지정
+        },
         audio: false
       });
       streamRef.current = stream;
       setIsCameraOn(true);
     } catch (err) {
-      alert('웹캠 접근 권한 오류: ' + err.message);
+      alert('카메라 접근 권한 오류: ' + err.message);
     }
   };
 
@@ -41,6 +48,13 @@ export default function NutritionCamTab({ onRewardPoints }) {
     setIsCameraOn(false);
   };
 
+  // 🔄 전면 <-> 후면 전환 토글
+  const toggleFacingMode = () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextMode);
+    startCamera(nextMode);
+  };
+
   useEffect(() => {
     return () => stopCamera();
   }, []);
@@ -57,7 +71,6 @@ export default function NutritionCamTab({ onRewardPoints }) {
     setNutritionResult(null);
 
     try {
-      // http://localhost:8080 제거 -> 상대 경로 사용
       const res = await axios.post('/api/iot/fridge/analyze-food-vision', {
         image: canvas.toDataURL('image/jpeg', 0.85)
       });
@@ -116,10 +129,10 @@ export default function NutritionCamTab({ onRewardPoints }) {
       <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
         {!isCameraOn ? (
           <button
-            onClick={startCamera}
+            onClick={() => startCamera(facingMode)}
             style={{ flex: 1, padding: '12px', backgroundColor: '#3182ce', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
           >
-            ▶ 웹캠 시작하기
+            ▶ 카메라 시작하기
           </button>
         ) : (
           <>
@@ -129,6 +142,14 @@ export default function NutritionCamTab({ onRewardPoints }) {
               style={{ flex: 2, padding: '12px', backgroundColor: '#38a169', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
             >
               {analyzing ? '🔍 AI 판독 중...' : '📸 AI 영양 분석 실행'}
+            </button>
+            <button
+              type="button"
+              onClick={toggleFacingMode}
+              title="전면/후면 전환"
+              style={{ padding: '12px 14px', backgroundColor: '#4a5568', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+            >
+              🔄
             </button>
             <button
               onClick={stopCamera}
