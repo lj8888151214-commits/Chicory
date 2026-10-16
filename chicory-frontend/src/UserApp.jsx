@@ -1,277 +1,173 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import axios from 'axios';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Text, RoundedBox } from '@react-three/drei';
+import * as THREE from 'three';
+import SaltModel3D from './SaltModel3D';
+import OnionModel3D from './OnionModel3D';
+import KimchiModel3D from './KimchiModel3D';
+import PerillaOilModel3D from './PerillaOilModel3D';
+import GarlicModel3D from './GarlicModel3D';
+import MushroomModel3D from './MushroomModel3D';
+import FridgeModel3D from './FridgeModel3D';
+import DraggableItem from './DraggableItem';
 
-import FridgeStatusPanel from './components/FridgeStatusPanel';
-import RecipeTab from './components/RecipeTab';
-import FridgeTab from './components/FridgeTab';
-import NutritionCamTab from './components/NutritionCamTab';
-import MyPageTab from './components/MyPageTab';
-import Fridge3DViewer from './components/Fridge3DViewer';
+function CameraController({ isOpen, controlsRef }) {
+  useFrame((state, delta) => {
+    const targetZ = isOpen ? 4.8 : 2.6;
+    const targetY = isOpen ? -0.1 : 0.22;
 
-const MENU_TABS = [
-  { id: 'recipe', label: '🍳 추천 레시피', activeColor: '#dd6b20' },
-  { id: 'fridge', label: '🧊 냉장고 관리', activeColor: '#3182ce' },
-  { id: 'nutrition', label: '📹 AI 캠 분석', activeColor: '#38a169' },
-  { id: 'mypage', label: '📊 마이페이지', activeColor: '#805ad5' },
-];
+    state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, targetZ, 4.5, delta);
+    state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, targetY, 4.5, delta);
 
-export default function UserApp() {
-  const [activeTab, setActiveTab] = useState('recipe');
-  const [doorStatus, setDoorStatus] = useState('닫힘 🔴');
-  const [aiPrompt, setAiPrompt] = useState('냉장고 문 열림 신호를 대기하고 있습니다...');
-
-  const [fridgeStatus, setFridgeStatus] = useState({
-    isOpen: false,
-    doorState: 'CLOSE',
-    currentTemp: 2.0,
-    totalQuantity: 0,
-    coolingLoad: 'NORMAL'
+    if (controlsRef.current) {
+      const targetLookY = isOpen ? -0.12 : -0.25;
+      controlsRef.current.target.set(0, targetLookY, 0);
+      controlsRef.current.update();
+    }
   });
+  return null;
+}
 
-  const [urgentItems, setUrgentItems] = useState([]);
-  const [consumeMessage, setConsumeMessage] = useState('');
-  const [recommendedRecipes, setRecommendedRecipes] = useState([]);
-  const [recipeLoading, setRecipeLoading] = useState(false);
-  const [myPoints, setMyPoints] = useState(120);
+function Ingredient3D({ item, color }) {
+  return (
+    <group>
+      <RoundedBox args={[0.2, 0.15, 0.2]} radius={0.03} smoothness={4}>
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.1} />
+      </RoundedBox>
+      <Text
+        position={[0, 0.13, 0]}
+        fontSize={0.075}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.008}
+        outlineColor="#000000"
+      >
+        {item.name}
+      </Text>
+    </group>
+  );
+}
 
-  // 로컬스토리지 도어 센서 이벤트 수신
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'fridge_iot_event' && e.newValue) {
-        try {
-          const data = JSON.parse(e.newValue);
-          const isOpen = data.eventType === 'OPEN';
-          setDoorStatus(isOpen ? '열림 🟢' : '닫힘 🔴');
-          setFridgeStatus(prev => ({
-            ...prev,
-            isOpen,
-            doorState: isOpen ? 'OPEN' : 'CLOSE'
-          }));
-          setAiPrompt(isOpen ? (data.promptMessage || '냉장고 문이 열렸습니다!') : '냉장고 문이 닫혔습니다.');
-          if (data.urgentIngredients?.length > 0) {
-            setUrgentItems(data.urgentIngredients);
-          }
-        } catch (err) {
-          console.error('이벤트 파싱 오류:', err);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // 초기 식재료 불러오기 및 IoT 상태 폴링
-  useEffect(() => {
-    fetchFridgeIngredients();
-    fetchFridgeStatus();
-
-    const interval = setInterval(fetchFridgeStatus, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchFridgeIngredients = async () => {
-    try {
-      const res = await axios.get('http://localhost:8080/api/iot/fridge/ingredients');
-      setUrgentItems(res.data);
-    } catch (err) {
-      console.error('식재료 DB 조회 실패:', err);
-    }
+function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControlsEnabled }) {
+  const getColor = (name = '') => {
+    if (name.includes('돼지') || name.includes('고기') || name.includes('삼겹')) return '#ff6b6b';
+    if (name.includes('김치')) return '#ee5253';
+    if (name.includes('대파') || name.includes('양파') || name.includes('채소')) return '#1dd1a1';
+    if (name.includes('계란') || name.includes('달걀') || name.includes('두부')) return '#feca57';
+    if (name.includes('감자') || name.includes('마늘')) return '#c8d6e5';
+    return '#54a0ff';
   };
 
-  const fetchFridgeStatus = async () => {
-    try {
-      const res = await axios.get('http://localhost:8080/api/iot/fridge/status');
-      setFridgeStatus(res.data);
-      if (res.data?.doorState) {
-        setDoorStatus(res.data.doorState === 'OPEN' ? '열림 🟢' : '닫힘 🔴');
-      }
-    } catch (err) {
-      // status API 미응답 시 기본값 유지
-    }
-  };
+  const shelves = [0.25, -0.12, -0.66];
 
-  // 재료 변경 시 추천 레시피 갱신
-  useEffect(() => {
-    if (activeTab === 'recipe') {
-      fetchRecommendedRecipes();
-    }
-  }, [activeTab, urgentItems]);
+  const renderModel = (item) => {
+    const itemName = (item.name || '').trim();
+    if (itemName.includes('소금')) return <SaltModel3D scale={0.015} label={item.name} />;
+    if (itemName.includes('양파')) return <OnionModel3D scale={0.20} label={item.name} />;
+    if (itemName.includes('김치')) return <KimchiModel3D scale={0.32} label={item.name} />;
+    if (itemName.includes('들기름') || itemName.includes('기름')) return <PerillaOilModel3D scale={0.14} label={item.name} />;
+    if (itemName.includes('마늘')) return <GarlicModel3D scale={0.20} label={item.name} />;
+    if (itemName.includes('버섯') || itemName.toLowerCase().includes('mushroom')) return <MushroomModel3D scale={0.20} label={item.name} />;
 
-  const fetchRecommendedRecipes = async () => {
-    if (urgentItems.length === 0) {
-      setRecommendedRecipes([]);
-      return;
-    }
-
-    setRecipeLoading(true);
-    try {
-      const ingNames = urgentItems.map(i => i.name).join(',');
-      const res = await axios.get('http://localhost:8080/api/recipes/recommend', {
-        params: { ingredients: ingNames }
-      });
-      setRecommendedRecipes(res.data);
-    } catch (err) {
-      console.error('레시피 추천 조회 실패:', err);
-    } finally {
-      setRecipeLoading(false);
-    }
-  };
-
-  // 식재료 직접 등록 핸들러
-  const handleAddIngredient = async (newIngredient) => {
-    const today = new Date();
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
-
-    const payload = {
-      name: newIngredient.name.trim(),
-      quantity: parseInt(newIngredient.quantity, 10) || 1,
-      unit: newIngredient.unit || '개',
-      purchaseDate: today.toISOString().split('T')[0],
-      expireDate: nextWeek.toISOString().split('T')[0]
-    };
-
-    try {
-      const res = await axios.post('http://localhost:8080/api/iot/fridge/ingredients', payload);
-      setUrgentItems(prev => [res.data, ...prev]);
-      setConsumeMessage(`✅ '${res.data.name}' 재료가 DB에 추가되었습니다!`);
-      fetchFridgeStatus();
-    } catch (err) {
-      alert('식재료 등록 실패: ' + (err.response?.data?.message || err.message));
-    }
-  };
-
-  // 퀵 태그 추가 핸들러
-  const handleQuickAdd = async (itemName) => {
-    const today = new Date();
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
-
-    const payload = {
-      name: itemName,
-      quantity: 1,
-      unit: (itemName === '돼지고기' || itemName === '삼겹살' || itemName === '김치') ? 'g' : '개',
-      purchaseDate: today.toISOString().split('T')[0],
-      expireDate: nextWeek.toISOString().split('T')[0]
-    };
-
-    try {
-      const res = await axios.post('http://localhost:8080/api/iot/fridge/ingredients', payload);
-      setUrgentItems(prev => [res.data, ...prev]);
-      setConsumeMessage(`✅ '${itemName}' 재료가 DB에 추가되었습니다.`);
-      fetchFridgeStatus();
-    } catch (err) {
-      alert('재료 추가 실패: ' + err.message);
-    }
-  };
-
-  // 식재료 삭제 핸들러
-  const handleDeleteIngredient = async (id, name) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/iot/fridge/ingredients/${id}`);
-      setUrgentItems(prev => prev.filter(i => i.id !== id));
-      setConsumeMessage(`🗑 '${name}' 재료를 DB에서 삭제했습니다.`);
-      fetchFridgeStatus();
-    } catch (err) {
-      alert('삭제 실패: ' + err.message);
-    }
-  };
-
-  // 식재료 소진 핸들러
-  const handleConsume = async (item, amount) => {
-    try {
-      const res = await axios.post(`http://localhost:8080/api/iot/fridge/consume?ingredientId=${item.id}&amount=${amount}`);
-      setConsumeMessage(`✅ '${item.name}' ${amount}${item.unit} 사용 완료!`);
-
-      if (res.data?.isConsumed) {
-        setUrgentItems(prev => prev.filter(i => i.id !== item.id));
-      } else {
-        setUrgentItems(prev =>
-          prev.map(i => i.id === item.id ? { ...i, quantity: res.data.remaining } : i)
-        );
-      }
-      fetchFridgeStatus();
-    } catch (err) {
-      alert('차감 실패: ' + err.message);
-    }
+    return <Ingredient3D item={item} color={getColor(item.name || '')} />;
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f0f2f5', padding: '16px', boxSizing: 'border-box', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ maxWidth: '480px', margin: '0 auto', backgroundColor: '#fff', borderRadius: '20px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+    <group position={[0, 0, 0]}>
+      <ambientLight intensity={1.3} />
+      <directionalLight position={[3, 5, 4]} intensity={1.4} />
+      <pointLight position={[0, 0.5, 0.8]} intensity={1.2} color="#ffffff" />
 
-        {/* 상단 헤더 & 포인트 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h2 style={{ margin: 0, fontSize: '18px', color: '#2d3748' }}>Chicory Food IoT</h2>
-          <span style={{ fontSize: '13px', fontWeight: 'bold', backgroundColor: '#feebc8', color: '#c05621', padding: '6px 12px', borderRadius: '14px' }}>
-            💰 {myPoints} P
-          </span>
-        </div>
+      <Suspense fallback={null}>
+        <FridgeModel3D isOpen={isOpen} position={[0, -0.9, -0.1]} scale={0.6} />
+      </Suspense>
 
-        {/* ❄️ 분리된 실시간 IoT 도어 & 온도 패널 컴포넌트 */}
-        <FridgeStatusPanel
-          fridgeStatus={fridgeStatus}
-          aiPrompt={aiPrompt}
-          urgentItemsCount={urgentItems.length}
+      {/* 식재료 드래그 앤 드롭 렌더링 */}
+      {ingredients.map((item, idx) => {
+        const shelfIndex = idx % 3;
+        const yPos = shelves[shelfIndex];
+        const colIndex = Math.floor(idx / 3) % 3;
+        const xPos = colIndex === 0 ? -0.26 : colIndex === 1 ? 0.0 : 0.26;
+        const depthLevel = Math.floor(idx / 9);
+        const zPos = 0.06 - depthLevel * 0.16;
+
+        return (
+          <DraggableItem
+            key={item.id || `${item.name}-${idx}`}
+            item={item}
+            initialPosition={[xPos, yPos + 0.03, zPos]}
+            onRemove={onRemoveIngredient}
+            setControlsEnabled={setControlsEnabled}
+          >
+            <Suspense fallback={null}>
+              {renderModel(item)}
+            </Suspense>
+          </DraggableItem>
+        );
+      })}
+    </group>
+  );
+}
+
+export default function Fridge3DViewer({ isOpen = true }) {
+  const [ingredients, setIngredients] = useState([]);
+  const [controlsEnabled, setControlsEnabled] = useState(true);
+  const controlsRef = useRef();
+
+  const fetchIngredients = async () => {
+    try {
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      const res = await axios.get('/api/iot/fridge/ingredients');
+      setIngredients(res.data || []);
+    } catch (err) {
+      console.error("식재료 로드 실패:", err);
+    }
+  };
+
+  // 식재료 빼내기(삭제) 핸들러
+  const handleRemoveIngredient = async (targetId) => {
+    try {
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      await axios.delete(`/api/iot/fridge/ingredients/${targetId}`);
+      setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
+    } catch (err) {
+      console.warn("삭제 API 미지원 또는 실패 -> UI에서만 임시 제거:", err);
+      setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
+    }
+  };
+
+  useEffect(() => {
+    fetchIngredients();
+    const timer = setInterval(fetchIngredients, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      <Canvas
+        camera={{ position: [0, 0.22, 4.8], fov: 38 }}
+        style={{ width: '100%', height: '100%' }}
+      >
+        <CameraController isOpen={isOpen} controlsRef={controlsRef} />
+        <RefrigeratorScene
+          ingredients={ingredients}
+          isOpen={isOpen}
+          onRemoveIngredient={handleRemoveIngredient}
+          setControlsEnabled={setControlsEnabled}
         />
 
-        {/* 상단 탭 네비게이션 버튼 */}
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '6px', marginBottom: '16px' }}>
-          {MENU_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '8px 14px',
-                border: 'none',
-                borderRadius: '10px',
-                backgroundColor: activeTab === tab.id ? tab.activeColor : '#edf2f7',
-                color: activeTab === tab.id ? '#fff' : '#4a5568',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                whiteSpace: 'nowrap',
-                cursor: 'pointer'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 탭별 분리된 컴포넌트 렌더링 */}
-        {activeTab === 'recipe' && (
-          <RecipeTab
-            urgentItems={urgentItems}
-            recommendedRecipes={recommendedRecipes}
-            recipeLoading={recipeLoading}
-            fetchRecommendedRecipes={fetchRecommendedRecipes}
-          />
-        )}
-
-        {activeTab === 'fridge' && (
-          <FridgeTab
-            doorStatus={doorStatus}
-            urgentItems={urgentItems}
-            consumeMessage={consumeMessage}
-            onAddIngredient={handleAddIngredient}
-            onQuickAdd={handleQuickAdd}
-            onConsume={handleConsume}
-            onDelete={handleDeleteIngredient}
-          />
-        )}
-
-        {activeTab === 'nutrition' && (
-          <NutritionCamTab
-            onRewardPoints={(points) => setMyPoints(prev => prev + points)}
-          />
-        )}
-
-        {activeTab === 'mypage' && (
-          <MyPageTab myPoints={myPoints} />
-        )}
-
-      </div>
+        <OrbitControls
+          ref={controlsRef}
+          enabled={controlsEnabled}
+          target={[0, -0.25, 0]}
+          enableDamping
+          dampingFactor={0.05}
+          minDistance={1.0}
+          maxDistance={8.0}
+        />
+      </Canvas>
     </div>
   );
 }

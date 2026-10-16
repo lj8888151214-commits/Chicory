@@ -57,7 +57,8 @@ export default function NutritionCamTab({ onRewardPoints }) {
     setNutritionResult(null);
 
     try {
-      const res = await axios.post('http://localhost:8080/api/iot/fridge/analyze-food-vision', {
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      const res = await axios.post('/api/iot/fridge/analyze-food-vision', {
         image: canvas.toDataURL('image/jpeg', 0.85)
       });
       const data = res.data;

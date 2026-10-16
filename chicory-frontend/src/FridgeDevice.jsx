@@ -23,7 +23,8 @@ export default function FridgeDevice() {
 
   const fetchIngredients = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/iot/fridge/ingredients');
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      const res = await axios.get('/api/iot/fridge/ingredients');
       const list = res.data || [];
       setIngredients(list);
     } catch (err) {
@@ -76,7 +77,8 @@ export default function FridgeDevice() {
     setBufferText(JSON.stringify(payload, null, 2));
 
     try {
-      await axios.post('http://localhost:8080/api/iot/fridge/event', payload);
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      await axios.post('/api/iot/fridge/event', payload);
       setDoorState(nextState);
     } catch (err) {
       console.error("전송 에러:", err);
@@ -130,7 +132,7 @@ export default function FridgeDevice() {
         )}
       </AnimatePresence>
 
-      {/* 1. 상단 상태 표시줄 */}
+      {/* 상단 상태 표시줄 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <ThermometerSnowflake size={16} color="#00e5ff" />
@@ -142,7 +144,7 @@ export default function FridgeDevice() {
         </div>
       </div>
 
-      {/* 2. 3D 냉장고 뷰어 영역 (높이를 360px로 확장) */}
+      {/* 2. 3D 냉장고 뷰어 영역 */}
       <div style={{
         position: 'relative',
         height: '360px',
@@ -196,7 +198,7 @@ export default function FridgeDevice() {
         {isOpen ? '냉장고 문 닫기 (CLOSE)' : '냉장고 문 열기 (OPEN)'}
       </motion.button>
 
-      {/* 4. IoT 전송 원시 버퍼 (작게 축소) */}
+      {/* 4. IoT 전송 원시 버퍼 */}
       <div style={{ marginTop: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#64748b' }}>

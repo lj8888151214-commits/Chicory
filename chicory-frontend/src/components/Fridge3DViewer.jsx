@@ -10,7 +10,7 @@ import PerillaOilModel3D from './PerillaOilModel3D';
 import GarlicModel3D from './GarlicModel3D';
 import MushroomModel3D from './MushroomModel3D';
 import FridgeModel3D from './FridgeModel3D';
-import DraggableItem from './DraggableItem'; // 위에서 생성한 컴포넌트 임포트
+import DraggableItem from './DraggableItem';
 
 function CameraController({ isOpen, controlsRef }) {
   useFrame((state, delta) => {
@@ -113,12 +113,13 @@ function RefrigeratorScene({ ingredients, isOpen, onRemoveIngredient, setControl
 
 export default function Fridge3DViewer({ isOpen = true }) {
   const [ingredients, setIngredients] = useState([]);
-  const [controlsEnabled, setControlsEnabled] = useState(true); // 드래그 중 카메라 회전 방지
+  const [controlsEnabled, setControlsEnabled] = useState(true);
   const controlsRef = useRef();
 
   const fetchIngredients = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/iot/fridge/ingredients');
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      const res = await axios.get('/api/iot/fridge/ingredients');
       setIngredients(res.data || []);
     } catch (err) {
       console.error("식재료 로드 실패:", err);
@@ -128,9 +129,8 @@ export default function Fridge3DViewer({ isOpen = true }) {
   // 식재료 빼내기(삭제) 핸들러
   const handleRemoveIngredient = async (targetId) => {
     try {
-      // 백엔드 삭제 API 호출 (기존 엔드포인트 규격에 맞게 조정 가능)
-      await axios.delete(`http://localhost:8080/api/iot/fridge/ingredients/${targetId}`);
-      // 즉시 UI 반영
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      await axios.delete(`/api/iot/fridge/ingredients/${targetId}`);
       setIngredients((prev) => prev.filter((it) => (it.id || it.name) !== targetId));
     } catch (err) {
       console.warn("삭제 API 미지원 또는 실패 -> UI에서만 임시 제거:", err);
@@ -160,7 +160,7 @@ export default function Fridge3DViewer({ isOpen = true }) {
 
         <OrbitControls
           ref={controlsRef}
-          enabled={controlsEnabled} // 드래그 시 카메라 고정
+          enabled={controlsEnabled}
           target={[0, -0.25, 0]}
           enableDamping
           dampingFactor={0.05}

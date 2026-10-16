@@ -26,7 +26,8 @@ export default function RecipeTab({
         ingredients: newRecipe.ingredients.filter(i => i.trim() !== ''),
         steps: newRecipe.steps.filter(s => s.trim() !== '')
       };
-      await axios.post('http://localhost:8080/api/recipes', payload);
+      // http://localhost:8080 제거 -> 상대 경로 사용
+      await axios.post('/api/recipes', payload);
       alert('레시피가 등록되었습니다!');
       setIsFormOpen(false);
       setNewRecipe({
