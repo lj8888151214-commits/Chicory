@@ -231,6 +231,7 @@ public class FridgeIotService {
     }
 
     // 5. 카카오톡 발화 기반 식재료 일괄 저장
+    // 5. 카카오톡 발화 기반 식재료 일괄 저장
     @Transactional
     public List<String> addIngredientsFromKakao(List<String> itemNames) {
         List<String> savedNames = new java.util.ArrayList<>();
@@ -245,7 +246,7 @@ public class FridgeIotService {
                     .unit("개")
                     .purchaseDate(java.time.LocalDate.now())
                     .expireDate(java.time.LocalDate.now().plusDays(7)) // 기본 유통기한 7일
-                    .consumed(false)
+                    // .consumed(false) 제거 (또는 엔티티 필드명에 맞춰 .isConsumed(false))
                     .build();
 
             ingredientRepository.save(ingredient);
