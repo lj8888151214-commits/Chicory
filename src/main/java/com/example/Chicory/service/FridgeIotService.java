@@ -229,4 +229,31 @@ public class FridgeIotService {
                 .aiReview("일시적인 과부하 또는 오류가 발생했습니다. '재인식' 버튼을 눌러 다시 시도해 주세요.")
                 .build();
     }
+
+    // 5. 카카오톡 발화 기반 식재료 일괄 저장
+    @Transactional
+    public List<String> addIngredientsFromKakao(List<String> itemNames) {
+        List<String> savedNames = new java.util.ArrayList<>();
+
+        for (String name : itemNames) {
+            String trimmed = name.trim();
+            if (trimmed.isEmpty()) continue;
+
+            Ingredient ingredient = Ingredient.builder()
+                    .name(trimmed)
+                    .quantity(1)
+                    .unit("개")
+                    .purchaseDate(java.time.LocalDate.now())
+                    .expireDate(java.time.LocalDate.now().plusDays(7)) // 기본 유통기한 7일
+                    .consumed(false)
+                    .build();
+
+            ingredientRepository.save(ingredient);
+            savedNames.add(trimmed);
+        }
+
+        return savedNames;
+    }
+
+
 }

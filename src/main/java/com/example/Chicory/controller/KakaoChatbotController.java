@@ -1,12 +1,18 @@
 package com.example.Chicory.controller;
 
+import com.example.Chicory.service.FridgeIotService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/kakao")
+@RequiredArgsConstructor
 public class KakaoChatbotController {
+
+    private final FridgeIotService fridgeIotService;
 
     @PostMapping("/fridge/add")
     public ResponseEntity<Map<String, Object>> handleKakaoSkill(@RequestBody Map<String, Object> payload) {
@@ -15,14 +21,17 @@ public class KakaoChatbotController {
         String utterance = userRequest != null ? (String) userRequest.get("utterance") : "";
 
         // 2. 발화문에서 식재료 추출
-        List<String> items = parseIngredients(utterance);
+        List<String> parsedItems = parseIngredients(utterance);
 
-        // 3. 카카오 오픈빌더 규격 응답 생성
+        // 3. 실제 DB 저장 호출
+        List<String> savedItems = fridgeIotService.addIngredientsFromKakao(parsedItems);
+
+        // 4. 응답 생성
         String replyText;
-        if (items.isEmpty()) {
-            replyText = "추가할 재료명을 찾지 못했습니다. '양파, 삼겹살 추가' 처럼 보내주세요.";
+        if (savedItems.isEmpty()) {
+            replyText = "추가할 재료명을 찾지 못했습니다. '양파, 삼겹살 추가' 형태로 보내주세요.";
         } else {
-            replyText = "🛒 Chicory 냉장고에 [" + String.join(", ", items) + "] 재료가 등록되었습니다!";
+            replyText = "🛒 Chicory 냉장고에 [" + String.join(", ", savedItems) + "] 재료가 보관되었습니다!";
         }
 
         Map<String, Object> simpleText = Map.of("text", replyText);
@@ -36,7 +45,7 @@ public class KakaoChatbotController {
     }
 
     private List<String> parseIngredients(String text) {
-        String cleaned = text.replaceAll("(구매|샀어|사옴|추가|등록|결제|마트|수퍼|슈퍼|\\s+)", " ").trim();
+        String cleaned = text.replaceAll("(구매|샀어|사옴|추가|등록|결제|마트|수퍼|슈퍼|넣었어|넣음|보관|\\s+)", " ").trim();
         if (cleaned.isEmpty()) return Collections.emptyList();
 
         String[] tokens = cleaned.split("[,\\s+및랑하고]+");
