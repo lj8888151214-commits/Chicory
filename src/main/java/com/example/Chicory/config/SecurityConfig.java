@@ -32,22 +32,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 1. 로컬 환경 및 배포 도메인(DuckDNS 등) 모두 허용
+        // setAllowCredentials(true)일 때는 와일드카드 "*" 대신 구체적인 패턴 목록을 지정합니다.
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:[*]",
                 "http://127.0.0.1:[*]",
                 "https://*.duckdns.org",
-                "http://*.duckdns.org",
-                "*" // 모든 도메인 패턴 허용 (로그인이 없는 공개 웹이므로 안전)
+                "http://*.duckdns.org"
         ));
 
-        // 2. 모든 HTTP 메서드 허용
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-
-        // 3. 모든 헤더 허용
         config.setAllowedHeaders(List.of("*"));
-
-        // 4. 자격 증명 허용
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
